@@ -15,7 +15,7 @@ Debug build is really slow.
 ## Commands
 
 - Right click. Spawn a metaball.
-- Left click. Drag a metaballs around.
+- Left click. Drag a metaball around.
 - Wheel click. Remove a metaball.
 
 ![alt-text](demo.gif)
