@@ -24,6 +24,8 @@ namespace {
 constexpr std::size_t g_screen_witdh = 1200;
 constexpr std::size_t g_screen_height = 900;
 
+constexpr auto g_small = 1e-8F;
+
 
 // [[nodiscard]] float calc_field(Coordinate const &c1, Coordinate const &c2) {
 //     auto const r = (c1.x - c2.x) * (c1.x - c2.x) + (c1.y - c2.y) * (c1.y - c2.y);
@@ -34,8 +36,7 @@ constexpr std::size_t g_screen_height = 900;
 [[nodiscard]] float calc_field_approx(Coordinate const &c1, Coordinate const &c2) {
     static constexpr float g_metaball_radius = 100.0F;
     auto const r = (c1.x - c2.x) * (c1.x - c2.x) + (c1.y - c2.y) * (c1.y - c2.y);
-    if (r == 0) { return g_metaball_radius; }
-    return g_metaball_radius / static_cast<float>(r);
+    return g_metaball_radius / (static_cast<float>(r) + g_small);
 }
 
 // [[nodiscard]] PixelValue calc_pixel_value(float pixel_field) {
@@ -43,16 +44,20 @@ constexpr std::size_t g_screen_height = 900;
 //     return pixel_field > threshold ? g_active_color : g_background_color;
 // }
 
-[[nodiscard]] PixelValue calc_pixel_value_bw(float pixel_field) {
-    if (pixel_field > 1.0F) {
-        return 0xFF'FF'FF'FFU;  // NOLINT
-    }
+// [[nodiscard]] PixelValue calc_pixel_value_bw(float pixel_field) {
+//     const auto i = static_cast<std::uint8_t>(std::lerp(0.F, 255.F, std::min(50.F * pixel_field, 1.F)));
+//     return static_cast<PixelValue>(
+//         static_cast<PixelValue>(i << 24U)  // NOLINT
+//         | static_cast<PixelValue>(i << 16U)  // NOLINT
+//         | static_cast<PixelValue>(i << 8U)  // NOLINT
+//         | 0xFFU);  // NOLINT
+// }
+
+template <std::size_t BitShift>
+[[nodiscard]] PixelValue calc_pixel_value_single_color(float pixel_field) {
+    static_assert(BitShift == 8 || BitShift == 16 || BitShift == 24);
     const auto i = static_cast<std::uint8_t>(std::lerp(0.F, 255.F, std::min(50.F * pixel_field, 1.F)));
-    return static_cast<PixelValue>(
-        static_cast<PixelValue>(i << 24U)  // NOLINT
-        | static_cast<PixelValue>(i << 16U)  // NOLINT
-        | static_cast<PixelValue>(i << 8U)  // NOLINT
-        | 0xFFU);  // NOLINT
+    return static_cast<PixelValue>(i << BitShift);
 }
 
 [[nodiscard]] auto find_closest(std::vector<Coordinate> &centers, Coordinate coord) {
@@ -200,7 +205,7 @@ void App::run() {
                       m_data.coordinates(),
                       m_data.centers(),
                       calc_field_approx,
-                      calc_pixel_value_bw);
+                      calc_pixel_value_single_color<16>);  // 8==blue; 16==green; 24==red
 
         // auto const y = std::chrono::system_clock::now();
 
