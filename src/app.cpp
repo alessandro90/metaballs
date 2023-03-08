@@ -37,10 +37,10 @@ constexpr auto g_small = 1e-8F;
     return g_metaball_radius / (static_cast<float>(r) + g_small);
 }
 
-[[nodiscard]] PixelValue calc_pixel_value(float pixel_field) {
-    static constexpr float threshold = 0.01F;
-    return pixel_field > threshold ? 0xFDDB27FFU : 0x00B1D2FFU;
-}
+// [[nodiscard]] PixelValue calc_pixel_full(float pixel_field) {
+//     static constexpr float threshold = 0.01F;
+//     return pixel_field > threshold ? 0xFDDB27FFU : 0x00B1D2FFU;
+// }
 
 // [[nodiscard]] PixelValue calc_pixel_value_bw(float pixel_field) {
 //     const auto i = static_cast<std::uint8_t>(std::lerp(0.F, 255.F, std::min(50.F * pixel_field, 1.F)));
@@ -51,7 +51,7 @@ constexpr auto g_small = 1e-8F;
 //         | 0xFFU);  // NOLINT
 // }
 
-// template <std::size_t BitShift> // 8==blue; 16==green; 24==red
+// template <std::size_t BitShift>  // 8==blue; 16==green; 24==red
 // [[nodiscard]] PixelValue calc_pixel_value_single_color(float pixel_field) {
 //     static_assert(BitShift == 8 || BitShift == 16 || BitShift == 24);
 //     const auto i = static_cast<std::uint8_t>(std::lerp(0.F, 255.F, std::min(50.F * pixel_field, 1.F)));
@@ -62,6 +62,12 @@ constexpr auto g_small = 1e-8F;
 //     if (pixel_field < 0.013F && pixel_field > 0.01F) { return 0xD6ED17FFU; }
 //     return 0x606060FFU;
 // }
+
+[[nodiscard]] PixelValue calc_pixel_ring_full(float pixel_field) {
+    if (pixel_field > 0.013F) { return 0xA8D5BAFFU; }
+    if (pixel_field > 0.01F) { return 0xD7A9E3FFU; }
+    return 0x8BBEE8FFU;
+}
 
 [[nodiscard]] auto find_closest(std::vector<Coordinate> &centers, Coordinate coord) {
     static constexpr auto min_px_from_center = 20;
@@ -208,7 +214,7 @@ void App::run() {
                       m_data.coordinates(),
                       m_data.centers(),
                       calc_field_approx,
-                      calc_pixel_value);
+                      calc_pixel_ring_full);
 
         // auto const y = std::chrono::system_clock::now();
 

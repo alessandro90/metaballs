@@ -19,7 +19,6 @@ Debug build is really slow.
 - Wheel click. Remove a metaball.
 
 ![alt-text](demos/demo_rings.gif)
+![alt-text](demos/demo_rings_full.gif)
 ![alt-text](demos/demo_green.gif)
-<br>
-<br>
 ![alt-text](demos/demo.gif)
