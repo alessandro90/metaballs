@@ -6,7 +6,7 @@
 
 Debug build is really slow.
 
-`cmake -DCMAKE_BUILD_TYPE=Release ..`
+`mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release ..`
 
 ## Run
 
