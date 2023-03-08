@@ -9,7 +9,7 @@ struct Coordinate {
     Int x;
     Int y;
 
-    [[nodiscard]] constexpr bool operator==(Coordinate const &other) const noexcept {
+    [[nodiscard]] constexpr bool operator==(Coordinate other) const noexcept {
         return x == other.x && y == other.y;
     }
 };

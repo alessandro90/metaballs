@@ -27,13 +27,13 @@ constexpr std::size_t g_screen_height = 900;
 constexpr auto g_small = 1e-8F;
 
 
-// [[nodiscard]] float calc_field(Coordinate const &c1, Coordinate const &c2) {
+// [[nodiscard]] float calc_field(Coordinate c1, Coordinate c2) {
 //     auto const r = (c1.x - c2.x) * (c1.x - c2.x) + (c1.y - c2.y) * (c1.y - c2.y);
 //     return r == 0 ? 1.0F : (1.0F / std::sqrt(static_cast<float>(r)));
 // }
 
 
-[[nodiscard]] float calc_field_approx(Coordinate const &c1, Coordinate const &c2) {
+[[nodiscard]] float calc_field_approx(Coordinate c1, Coordinate c2) {
     static constexpr float g_metaball_radius = 100.0F;
     auto const r = (c1.x - c2.x) * (c1.x - c2.x) + (c1.y - c2.y) * (c1.y - c2.y);
     return g_metaball_radius / (static_cast<float>(r) + g_small);
