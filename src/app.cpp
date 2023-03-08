@@ -53,11 +53,16 @@ constexpr auto g_small = 1e-8F;
 //         | 0xFFU);  // NOLINT
 // }
 
-template <std::size_t BitShift>
-[[nodiscard]] PixelValue calc_pixel_value_single_color(float pixel_field) {
-    static_assert(BitShift == 8 || BitShift == 16 || BitShift == 24);
-    const auto i = static_cast<std::uint8_t>(std::lerp(0.F, 255.F, std::min(50.F * pixel_field, 1.F)));
-    return static_cast<PixelValue>(i << BitShift);
+// template <std::size_t BitShift> // 8==blue; 16==green; 24==red
+// [[nodiscard]] PixelValue calc_pixel_value_single_color(float pixel_field) {
+//     static_assert(BitShift == 8 || BitShift == 16 || BitShift == 24);
+//     const auto i = static_cast<std::uint8_t>(std::lerp(0.F, 255.F, std::min(50.F * pixel_field, 1.F)));
+//     return static_cast<PixelValue>(i << BitShift);
+// }
+
+[[nodiscard]] PixelValue calc_pixel_ring(float pixel_field) {
+    if (pixel_field < 0.013F && pixel_field > 0.01F) { return 0xD6ED17FFU; }
+    return 0x606060FFU;
 }
 
 [[nodiscard]] auto find_closest(std::vector<Coordinate> &centers, Coordinate coord) {
@@ -205,7 +210,7 @@ void App::run() {
                       m_data.coordinates(),
                       m_data.centers(),
                       calc_field_approx,
-                      calc_pixel_value_single_color<16>);  // 8==blue; 16==green; 24==red
+                      calc_pixel_ring);
 
         // auto const y = std::chrono::system_clock::now();
 
