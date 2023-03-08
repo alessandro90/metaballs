@@ -18,8 +18,6 @@
 // #include <iostream>
 
 namespace {
-// constexpr PixelValue g_active_color = 0x9EF353FF;
-// constexpr PixelValue g_background_color = 0x696969FF;
 
 constexpr std::size_t g_screen_witdh = 1200;
 constexpr std::size_t g_screen_height = 900;
@@ -39,10 +37,10 @@ constexpr auto g_small = 1e-8F;
     return g_metaball_radius / (static_cast<float>(r) + g_small);
 }
 
-// [[nodiscard]] PixelValue calc_pixel_value(float pixel_field) {
-//     static constexpr float threshold = 0.01F;
-//     return pixel_field > threshold ? g_active_color : g_background_color;
-// }
+[[nodiscard]] PixelValue calc_pixel_value(float pixel_field) {
+    static constexpr float threshold = 0.01F;
+    return pixel_field > threshold ? 0xFDDB27FFU : 0x00B1D2FFU;
+}
 
 // [[nodiscard]] PixelValue calc_pixel_value_bw(float pixel_field) {
 //     const auto i = static_cast<std::uint8_t>(std::lerp(0.F, 255.F, std::min(50.F * pixel_field, 1.F)));
@@ -60,10 +58,10 @@ constexpr auto g_small = 1e-8F;
 //     return static_cast<PixelValue>(i << BitShift);
 // }
 
-[[nodiscard]] PixelValue calc_pixel_ring(float pixel_field) {
-    if (pixel_field < 0.013F && pixel_field > 0.01F) { return 0xD6ED17FFU; }
-    return 0x606060FFU;
-}
+// [[nodiscard]] PixelValue calc_pixel_ring(float pixel_field) {
+//     if (pixel_field < 0.013F && pixel_field > 0.01F) { return 0xD6ED17FFU; }
+//     return 0x606060FFU;
+// }
 
 [[nodiscard]] auto find_closest(std::vector<Coordinate> &centers, Coordinate coord) {
     static constexpr auto min_px_from_center = 20;
@@ -210,7 +208,7 @@ void App::run() {
                       m_data.coordinates(),
                       m_data.centers(),
                       calc_field_approx,
-                      calc_pixel_ring);
+                      calc_pixel_value);
 
         // auto const y = std::chrono::system_clock::now();
 
