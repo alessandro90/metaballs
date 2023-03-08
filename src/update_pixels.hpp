@@ -39,8 +39,8 @@ void update_pixels(std::size_t cols,
 {
     using Coordinate_t = std::ranges::range_value_t<decltype(pixel_coordinates)>;
     std::for_each(std::execution::unseq,
-                  pixel_coordinates.begin(),
-                  pixel_coordinates.end(),
+                  std::ranges::begin(pixel_coordinates),
+                  std::ranges::end(pixel_coordinates),
                   [&](Coordinate_t const &pixel_coordinate) {
                       auto const pixel_field = std::accumulate(
                           centers.begin(),
