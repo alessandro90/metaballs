@@ -43,8 +43,8 @@ void update_pixels(std::size_t cols,
                   std::ranges::end(pixel_coordinates),
                   [&](Coordinate_t const &pixel_coordinate) {
                       auto const pixel_field = std::accumulate(
-                          centers.begin(),
-                          centers.end(),
+                          std::ranges::begin(centers),
+                          std::ranges::end(centers),
                           0.0F,
                           [&](float acc, Coordinate_t const &center) {
                               return acc + calc_field(pixel_coordinate, center);
