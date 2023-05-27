@@ -3,6 +3,7 @@
 
 #include "SDL2/SDL.h"
 #include "window.hpp"
+#include <cstdint>
 #include <optional>
 
 
