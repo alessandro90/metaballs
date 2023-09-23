@@ -7,7 +7,10 @@
 #include "update_pixels.hpp"
 #include "window.hpp"
 
+#include <SDL_mouse.h>
+#include <SDL_scancode.h>
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstddef>
 #include <optional>
@@ -37,37 +40,46 @@ constexpr auto g_small = 1e-8F;
     return g_metaball_radius / (static_cast<float>(r) + g_small);
 }
 
-// [[nodiscard]] PixelValue calc_pixel_full(float pixel_field) {
-//     static constexpr float threshold = 0.01F;
-//     return pixel_field > threshold ? 0xFDDB27FFU : 0x00B1D2FFU;
-// }
+[[nodiscard]] PixelValue calc_pixel_full(float pixel_field) {
+    static constexpr float threshold = 0.01F;
+    return pixel_field > threshold ? 0xFDDB27FFU : 0x00B1D2FFU;  // NOLINT
+}
 
-// [[nodiscard]] PixelValue calc_pixel_value_bw(float pixel_field) {
-//     const auto i = static_cast<std::uint8_t>(std::lerp(0.F, 255.F, std::min(50.F * pixel_field, 1.F)));
-//     return static_cast<PixelValue>(
-//         static_cast<PixelValue>(i << 24U)  // NOLINT
-//         | static_cast<PixelValue>(i << 16U)  // NOLINT
-//         | static_cast<PixelValue>(i << 8U)  // NOLINT
-//         | 0xFFU);  // NOLINT
-// }
+[[nodiscard]] PixelValue calc_pixel_value_bw(float pixel_field) {
+    const auto i = static_cast<std::uint8_t>(std::lerp(0.F, 255.F, std::min(50.F * pixel_field, 1.F)));
+    return static_cast<PixelValue>(
+        static_cast<PixelValue>(i << 24U)  // NOLINT
+        | static_cast<PixelValue>(i << 16U)  // NOLINT
+        | static_cast<PixelValue>(i << 8U)  // NOLINT
+        | 0xFFU);  // NOLINT
+}
 
-// template <std::size_t BitShift>  // 8==blue; 16==green; 24==red
-// [[nodiscard]] PixelValue calc_pixel_value_single_color(float pixel_field) {
-//     static_assert(BitShift == 8 || BitShift == 16 || BitShift == 24);
-//     const auto i = static_cast<std::uint8_t>(std::lerp(0.F, 255.F, std::min(50.F * pixel_field, 1.F)));
-//     return static_cast<PixelValue>(i << BitShift);
-// }
+template <std::size_t BitShift>  // 8==blue; 16==green; 24==red
+[[nodiscard]] PixelValue calc_pixel_value_single_color(float pixel_field) {
+    static_assert(BitShift == 8 || BitShift == 16 || BitShift == 24);  // NOLINT
+    const auto i = static_cast<std::uint8_t>(std::lerp(0.F, 255.F, std::min(50.F * pixel_field, 1.F)));
+    return static_cast<PixelValue>(i << BitShift);
+}
 
-// [[nodiscard]] PixelValue calc_pixel_ring(float pixel_field) {
-//     if (pixel_field < 0.013F && pixel_field > 0.01F) { return 0xD6ED17FFU; }
-//     return 0x606060FFU;
-// }
+[[nodiscard]] PixelValue calc_pixel_ring(float pixel_field) {
+    if (pixel_field < 0.013F && pixel_field > 0.01F) { return 0xD6ED17FFU; }  // NOLINT
+    return 0x606060FFU;  // NOLINT
+}
 
 [[nodiscard]] PixelValue calc_pixel_ring_full(float pixel_field) {
-    if (pixel_field > 0.013F) { return 0xA8D5BAFFU; }
-    if (pixel_field > 0.01F) { return 0xD7A9E3FFU; }
-    return 0x8BBEE8FFU;
+    if (pixel_field > 0.013F) { return 0xA8D5BAFFU; }  // NOLINT
+    if (pixel_field > 0.01F) { return 0xD7A9E3FFU; }  // NOLINT
+    return 0x8BBEE8FFU;  // NOLINT
 }
+
+constexpr auto g_patterns = std::array{
+    &calc_pixel_full,
+    &calc_pixel_value_bw,
+    &calc_pixel_value_single_color<8>,
+    &calc_pixel_value_single_color<16>,
+    &calc_pixel_value_single_color<24>,
+    &calc_pixel_ring,
+    &calc_pixel_ring_full};
 
 [[nodiscard]] auto find_closest(std::vector<Coordinate> &centers, Coordinate coord) {
     static constexpr auto min_px_from_center = 20;
@@ -173,6 +185,8 @@ void App::handle_events() {
         case SDL_KEYDOWN:
             if (ev.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
                 quit();
+            } else if (ev.key.keysym.scancode == SDL_SCANCODE_X) {
+                m_pattern_index = (m_pattern_index + 1U) % g_patterns.size();
             }
             break;
         case SDL_MOUSEBUTTONDOWN:
@@ -214,7 +228,7 @@ void App::run() {
                       m_data.coordinates(),
                       m_data.centers(),
                       calc_field_approx,
-                      calc_pixel_ring_full);
+                      g_patterns[m_pattern_index]);  // NOLINT
 
         // auto const y = std::chrono::system_clock::now();
 

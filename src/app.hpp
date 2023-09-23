@@ -6,6 +6,7 @@
 #include "renderer.hpp"
 #include "texture.hpp"
 #include "window.hpp"
+#include <cstddef>
 #include <optional>
 
 class App {
@@ -31,6 +32,7 @@ private:
 
     bool m_quit_on_destroy{true};
     bool m_running{true};
+    std::size_t m_pattern_index{};
 
     void handle_events();
     void quit();

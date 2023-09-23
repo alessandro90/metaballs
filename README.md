@@ -17,6 +17,7 @@ Debug build is really slow.
 - Right click. Spawn a metaball.
 - Left click. Drag a metaball around.
 - Wheel click. Remove a metaball.
+- `x` to change 'theme'.
 
 ![alt-text](demos/demo_rings.gif)
 ![alt-text](demos/demo_rings_full.gif)

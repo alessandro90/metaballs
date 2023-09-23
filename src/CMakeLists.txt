@@ -42,23 +42,14 @@ add_compile_options(
     # -Winline
     -Wlong-long
     -Woverloaded-virtual
+    -Wimplicit-fallthrough=5
+    -Wmissing-include-dirs
+    -Wsuggest-override
+    -Wnon-virtual-dtor
 )
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address,undefined -g")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
-
-
-# Include(FetchContent)
-
-# FetchContent_Declare(
-#   cpputils
-#   GIT_REPOSITORY https://github.com/alessandro90/cpputils
-#   GIT_TAG        master
-# )
-
-# FetchContent_MakeAvailable(cpputils)
-
-# include_directories(${cpputils_SOURCE_DIR}/src/include)
 
 set(
     SRC_FILES
@@ -70,5 +61,16 @@ set(
     app.cpp
 )
 
+include(CheckIPOSupported)
+check_ipo_supported(RESULT supported OUTPUT error)
+
 add_executable(metaballs ${SRC_FILES})
+
+if( supported )
+    message(STATUS "IPO / LTO enabled")
+    set_property(TARGET metaballs PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+else()
+    message(STATUS "IPO / LTO not supported: <${error}>")
+endif()
+
 target_link_libraries(metaballs ${SDL2_LIBRARIES})
