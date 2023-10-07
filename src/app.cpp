@@ -195,10 +195,10 @@ void App::handle_events() {
             }
             switch (ev.button.button) {
             case SDL_BUTTON_RIGHT:
-                spawn_metaball({ev.button.y, ev.button.x});
+                spawn_metaball({.x = ev.button.y, .y = ev.button.x});
                 break;
             case SDL_BUTTON_MIDDLE:
-                maybe_delete_a_metaball({ev.button.y, ev.button.x});
+                maybe_delete_a_metaball({.x = ev.button.y, .y = ev.button.x});
                 break;
             default:
                 break;
@@ -206,7 +206,7 @@ void App::handle_events() {
             break;
         case SDL_MOUSEMOTION:  // Not the more efficient approach. A state-based logic would prpbably be more efficient.
             if ((ev.motion.state & static_cast<Uint32>(SDL_BUTTON_LMASK)) != 0) {
-                maybe_drag_a_metaball({ev.motion.y, ev.motion.x});
+                maybe_drag_a_metaball({.x = ev.motion.y, .y = ev.motion.x});
             }
             break;
         default:
