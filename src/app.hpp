@@ -36,9 +36,6 @@ private:
 
     void handle_events();
     void quit();
-    void spawn_metaball(Coordinate);
-    void maybe_drag_a_metaball(Coordinate);
-    void maybe_delete_a_metaball(Coordinate);
 };
 
 #endif

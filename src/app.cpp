@@ -4,7 +4,6 @@
 #include "common_types.hpp"
 #include "renderer.hpp"
 #include "texture.hpp"
-#include "update_pixels.hpp"
 #include "window.hpp"
 
 #include <SDL_mouse.h>
@@ -13,7 +12,9 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <execution>
 #include <optional>
+#include <span>
 #include <utility>
 #include <vector>
 
@@ -81,16 +82,29 @@ constexpr auto g_patterns = std::array{
     &calc_pixel_ring,
     &calc_pixel_ring_full};
 
-[[nodiscard]] auto find_closest(std::vector<Coordinate> &centers, Coordinate coord) {
-    static constexpr auto min_px_from_center = 20;
-    return std::find_if(
-        centers.begin(),
-        centers.end(),
-        [&](Coordinate center) {
-            return std::abs(center.x - coord.x) < min_px_from_center
-                   && std::abs(center.y - coord.y) < min_px_from_center;
-        });
+
+void update_pixels(std::size_t cols,
+                   std::span<PixelValue> pixels,
+                   std::span<Coordinate const> pixel_coordinates,
+                   std::span<Coordinate const> centers,
+                   float (*calc_field)(Coordinate, Coordinate),
+                   PixelValue (*calc_pixel_value)(float)) {
+    std::for_each(std::execution::unseq,
+                  std::ranges::begin(pixel_coordinates),
+                  std::ranges::end(pixel_coordinates),
+                  [=](Coordinate pixel_coordinate) {
+                      auto const pixel_field = std::accumulate(
+                          std::ranges::begin(centers),
+                          std::ranges::end(centers),
+                          0.0F,
+                          [=](float acc, Coordinate center) {
+                              return acc + calc_field(pixel_coordinate, center);
+                          });
+                      pixels[cols * static_cast<std::size_t>(pixel_coordinate.x)
+                             + static_cast<std::size_t>(pixel_coordinate.y)] = calc_pixel_value(pixel_field);
+                  });
 }
+
 }  // namespace
 
 std::optional<App> App::make() {
@@ -156,26 +170,6 @@ App::~App() {
 
 void App::quit() { m_running = false; }
 
-void App::spawn_metaball(Coordinate c) {
-    m_data.add_metaball(c);
-}
-
-void App::maybe_drag_a_metaball(Coordinate coord) {
-    auto &centers = m_data.centers();
-    auto closest_center = find_closest(centers, coord);
-    if (closest_center != centers.end()) {
-        *closest_center = coord;
-    }
-}
-
-void App::maybe_delete_a_metaball(Coordinate coord) {
-    auto &centers = m_data.centers();
-    auto closest_center = find_closest(centers, coord);
-    if (closest_center != centers.end()) {
-        std::erase(centers, Coordinate{*closest_center});
-    }
-}
-
 void App::handle_events() {
     for (SDL_Event ev; SDL_PollEvent(&ev) != 0;) {
         switch (ev.type) {
@@ -195,10 +189,10 @@ void App::handle_events() {
             }
             switch (ev.button.button) {
             case SDL_BUTTON_RIGHT:
-                spawn_metaball({.x = ev.button.y, .y = ev.button.x});
+                m_data.add_metaball({.x = ev.button.y, .y = ev.button.x});
                 break;
             case SDL_BUTTON_MIDDLE:
-                maybe_delete_a_metaball({.x = ev.button.y, .y = ev.button.x});
+                m_data.remove({.x = ev.button.y, .y = ev.button.x});
                 break;
             default:
                 break;
@@ -206,7 +200,7 @@ void App::handle_events() {
             break;
         case SDL_MOUSEMOTION:  // Not the more efficient approach. A state-based logic would prpbably be more efficient.
             if ((ev.motion.state & static_cast<Uint32>(SDL_BUTTON_LMASK)) != 0) {
-                maybe_drag_a_metaball({.x = ev.motion.y, .y = ev.motion.x});
+                m_data.drag({.x = ev.motion.y, .y = ev.motion.x});
             }
             break;
         default:
@@ -219,7 +213,7 @@ void App::run() {
     while (m_running) {
         handle_events();
 
-        auto &pixels = m_data.pixels();
+        auto const pixels = m_data.pixels();
 
         // auto const x = std::chrono::system_clock::now();
 
