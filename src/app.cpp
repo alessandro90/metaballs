@@ -8,18 +8,18 @@
 
 #include <SDL_mouse.h>
 #include <SDL_scancode.h>
+
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstddef>
 #include <execution>
 #include <optional>
+#include <ranges>
 #include <span>
+#include <thread>
 #include <utility>
 #include <vector>
-
-// #include <chrono>
-// #include <iostream>
 
 namespace {
 
@@ -87,22 +87,39 @@ void update_pixels(std::size_t cols,
                    std::span<PixelValue> pixels,
                    std::span<Coordinate const> pixel_coordinates,
                    std::span<Coordinate const> centers,
-                   float (*calc_field)(Coordinate, Coordinate),
                    PixelValue (*calc_pixel_value)(float)) {
     std::for_each(std::execution::unseq,
-                  std::ranges::begin(pixel_coordinates),
-                  std::ranges::end(pixel_coordinates),
+                  pixel_coordinates.begin(),
+                  pixel_coordinates.end(),
                   [=](Coordinate pixel_coordinate) {
                       auto const pixel_field = std::accumulate(
-                          std::ranges::begin(centers),
-                          std::ranges::end(centers),
+                          centers.begin(),
+                          centers.end(),
                           0.0F,
                           [=](float acc, Coordinate center) {
-                              return acc + calc_field(pixel_coordinate, center);
+                              return acc + calc_field_approx(pixel_coordinate, center);
                           });
                       pixels[cols * static_cast<std::size_t>(pixel_coordinate.x)
                              + static_cast<std::size_t>(pixel_coordinate.y)] = calc_pixel_value(pixel_field);
                   });
+}
+
+void update_pixels_parallel(std::size_t cols,
+                            std::span<PixelValue> pixels,
+                            std::span<Coordinate const> pixel_coordinates,
+                            std::span<Coordinate const> centers,
+                            PixelValue (*calc_pixel_value)(float)) {
+    static constexpr auto threads_num = 8;
+    auto const delta = (pixel_coordinates.size()) / threads_num;
+    std::array<std::jthread, threads_num> threads{};
+    for (auto const [i, t] : std::ranges::views::enumerate(threads)) {
+        t = std::jthread{update_pixels,
+                         cols,
+                         pixels,
+                         pixel_coordinates.subspan(static_cast<std::size_t>(i) * delta, delta),
+                         centers,
+                         calc_pixel_value};
+    }
 }
 
 }  // namespace
@@ -217,12 +234,11 @@ void App::run() {
 
         // auto const x = std::chrono::system_clock::now();
 
-        update_pixels(g_screen_witdh,
-                      pixels,
-                      m_data.coordinates(),
-                      m_data.centers(),
-                      calc_field_approx,
-                      g_patterns[m_pattern_index]);  // NOLINT
+        update_pixels_parallel(g_screen_witdh,
+                               pixels,
+                               m_data.coordinates(),
+                               m_data.centers(),
+                               g_patterns[m_pattern_index]);  // NOLINT
 
         // auto const y = std::chrono::system_clock::now();
 
