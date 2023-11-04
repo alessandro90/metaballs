@@ -194,10 +194,18 @@ void App::handle_events() {
             quit();
             break;
         case SDL_KEYDOWN:
-            if (ev.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+            switch (ev.key.keysym.scancode) {
+            case SDL_SCANCODE_ESCAPE:
                 quit();
-            } else if (ev.key.keysym.scancode == SDL_SCANCODE_X) {
+                break;
+            case SDL_SCANCODE_X:
                 m_pattern_index = (m_pattern_index + 1U) % g_patterns.size();
+                break;
+            case SDL_SCANCODE_C:
+                m_data.clear_metaballs();
+                break;
+            default:
+                break;
             }
             break;
         case SDL_MOUSEBUTTONDOWN:

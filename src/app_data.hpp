@@ -28,6 +28,8 @@ public:
         }
     }
 
+    void clear_metaballs() { m_centers.clear(); }
+
     [[nodiscard]] std::span<PixelValue> pixels() noexcept { return m_pixels; }
     [[nodiscard]] std::span<Coordinate const> coordinates() const noexcept { return m_coordinates; }
     [[nodiscard]] std::span<Coordinate const> centers() const noexcept { return m_centers; }
