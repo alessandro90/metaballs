@@ -109,10 +109,13 @@ void update_pixels_parallel(std::size_t cols,
                             std::span<Coordinate const> pixel_coordinates,
                             std::span<Coordinate const> centers,
                             PixelValue (*calc_pixel_value)(float)) {
-    static constexpr auto threads_num = 8;
-    auto const delta = (pixel_coordinates.size()) / threads_num;
+    static constexpr std::size_t threads_num = 8;
+    std::size_t const hw_concurrency = std::thread::hardware_concurrency();
+    auto const actual_concurrency = std::min(hw_concurrency, threads_num);
+
+    auto const delta = (pixel_coordinates.size()) / actual_concurrency;
     std::array<std::jthread, threads_num> threads{};
-    for (auto const [i, t] : std::ranges::views::enumerate(threads)) {
+    for (auto const [i, t] : threads | std::views::take(actual_concurrency) | std::views::enumerate) {
         t = std::jthread{update_pixels,
                          cols,
                          pixels,
