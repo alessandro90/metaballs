@@ -2,7 +2,6 @@
 #define METABALLS_APP_HPP  // NOLINT
 
 #include "app_data.hpp"
-#include "common_types.hpp"
 #include "renderer.hpp"
 #include "texture.hpp"
 #include "window.hpp"
@@ -34,7 +33,7 @@ private:
     bool m_running{true};
     std::size_t m_pattern_index{};
 
-    void handle_events();
+    [[nodiscard]] bool handle_events();
     void quit();
 };
 

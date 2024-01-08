@@ -19,7 +19,6 @@
 #include <span>
 #include <thread>
 #include <utility>
-#include <vector>
 
 namespace {
 
@@ -190,7 +189,8 @@ App::~App() {
 
 void App::quit() { m_running = false; }
 
-void App::handle_events() {
+bool App::handle_events() {
+    bool event_handled{};
     for (SDL_Event ev; SDL_PollEvent(&ev) != 0;) {
         switch (ev.type) {
         case SDL_QUIT:
@@ -202,9 +202,11 @@ void App::handle_events() {
                 quit();
                 break;
             case SDL_SCANCODE_X:
+                event_handled = true;
                 m_pattern_index = (m_pattern_index + 1U) % g_patterns.size();
                 break;
             case SDL_SCANCODE_C:
+                event_handled = true;
                 m_data.clear_metaballs();
                 break;
             default:
@@ -217,9 +219,11 @@ void App::handle_events() {
             }
             switch (ev.button.button) {
             case SDL_BUTTON_RIGHT:
+                event_handled = true;
                 m_data.add_metaball({.x = ev.button.y, .y = ev.button.x});
                 break;
             case SDL_BUTTON_MIDDLE:
+                event_handled = true;
                 m_data.remove({.x = ev.button.y, .y = ev.button.x});
                 break;
             default:
@@ -228,6 +232,7 @@ void App::handle_events() {
             break;
         case SDL_MOUSEMOTION:  // Not the more efficient approach. A state-based logic would prpbably be more efficient.
             if ((ev.motion.state & static_cast<Uint32>(SDL_BUTTON_LMASK)) != 0) {
+                event_handled = true;
                 m_data.drag({.x = ev.motion.y, .y = ev.motion.x});
             }
             break;
@@ -235,27 +240,29 @@ void App::handle_events() {
             break;
         }
     }
+    return event_handled;
 }
 
 void App::run() {
+    bool first_loop{true};
     while (m_running) {
-        handle_events();
+        if (handle_events() || first_loop) {
+            first_loop = false;
+            auto const pixels = m_data.pixels();
 
-        auto const pixels = m_data.pixels();
+            // auto const x = std::chrono::system_clock::now();
 
-        // auto const x = std::chrono::system_clock::now();
+            update_pixels_parallel(g_screen_witdh,
+                                   pixels,
+                                   m_data.coordinates(),
+                                   m_data.centers(),
+                                   g_patterns[m_pattern_index]);  // NOLINT
+            // auto const y = std::chrono::system_clock::now();
 
-        update_pixels_parallel(g_screen_witdh,
-                               pixels,
-                               m_data.coordinates(),
-                               m_data.centers(),
-                               g_patterns[m_pattern_index]);  // NOLINT
+            // std::cout << "Elapsed: " << std::chrono::duration_cast<std::chrono::milliseconds>(y - x) << '\n';
 
-        // auto const y = std::chrono::system_clock::now();
-
-        // std::cout << "Elapsed: " << std::chrono::duration_cast<std::chrono::milliseconds>(y - x) << '\n';
-
-        m_texture.update(pixels.data(), g_screen_witdh * 4U);
+            m_texture.update(pixels.data(), g_screen_witdh * 4U);
+        }
         m_renderer.present(m_texture);
     }
 }
