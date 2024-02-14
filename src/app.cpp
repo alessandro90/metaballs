@@ -243,25 +243,23 @@ bool App::handle_events() {
     return event_handled;
 }
 
+void App::render() {
+    auto const pixels = m_data.pixels();
+
+    update_pixels_parallel(g_screen_witdh,
+                           pixels,
+                           m_data.coordinates(),
+                           m_data.centers(),
+                           g_patterns[m_pattern_index]);  // NOLINT
+
+    m_texture.update(pixels.data(), g_screen_witdh * 4U);
+}
+
 void App::run() {
-    bool first_loop{true};
+    render();
     while (m_running) {
-        if (handle_events() || first_loop) {
-            first_loop = false;
-            auto const pixels = m_data.pixels();
-
-            // auto const x = std::chrono::system_clock::now();
-
-            update_pixels_parallel(g_screen_witdh,
-                                   pixels,
-                                   m_data.coordinates(),
-                                   m_data.centers(),
-                                   g_patterns[m_pattern_index]);  // NOLINT
-            // auto const y = std::chrono::system_clock::now();
-
-            // std::cout << "Elapsed: " << std::chrono::duration_cast<std::chrono::milliseconds>(y - x) << '\n';
-
-            m_texture.update(pixels.data(), g_screen_witdh * 4U);
+        if (handle_events()) {
+            render();
         }
         m_renderer.present(m_texture);
     }

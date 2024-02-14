@@ -33,6 +33,7 @@ private:
     bool m_running{true};
     std::size_t m_pattern_index{};
 
+    void render();
     [[nodiscard]] bool handle_events();
     void quit();
 };
