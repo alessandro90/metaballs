@@ -9,6 +9,8 @@
 #include <SDL_mouse.h>
 #include <SDL_scancode.h>
 
+#include <SDL_stdinc.h>
+#include <SDL_timer.h>
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -260,6 +262,9 @@ void App::run() {
     while (m_running) {
         if (handle_events()) {
             render();
+        } else {
+            static constexpr Uint32 wait_ms{20};
+            SDL_Delay(wait_ms);
         }
         m_renderer.present(m_texture);
     }
